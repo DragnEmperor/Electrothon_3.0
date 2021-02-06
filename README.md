@@ -7,3 +7,6 @@ wide variety of structures in natural images and predict what to fill in unknown
 regions in images. Thus, it is crucial to know how to learn an image transformation from a
 corrupted image with missing data to a completed image.
 
+# Object Removal using cGANs
+This project tries to achieve object removal from images and get the base image reconstructed based on surrounding pixels(objects and colours) using conditional Generative Adversarial Networks(cGANs).
+
