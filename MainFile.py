@@ -35,7 +35,7 @@ def get_image(this = False):
 # Mask Generation
 def masking(image):
     mask = (np.array(image[:, :, 0]) == 0.9)
-    mask = mask & (np.array(image[:, :, 1]) == 0.1)
+    mask = mask & (np.array(image[:, :, 1]) == 0.9)
     mask = mask & (np.array(image[:, :, 2]) == 0.9)
     mask = np.dstack([mask, mask, mask])
     return (True ^ mask) * np.array(image)
@@ -119,12 +119,19 @@ if __name__ == "__main__":
                 }
             )
             filtered_image = np.array(output_tensor)[0, :, :, :].astype(float)
-            # imwrite(os.path.join('results', path_images[img_no][21 : 35]), ((filtered_image[:,:,[2, 1, 0]]) * 255) )
             # imwrite(os.path.join('inputs', path_images[img_no][21 : 35]), ((image) * 255))
+
+        elif key_pressed == 115:
+            imwrite('Result/res.jpg', ((filtered_image[:,:,[2, 1, 0]]) * 255) )
 
         # R key to reset
         elif key_pressed == 114:
             image = get_image(this=True)
+            filtered_image = empty
+
+        # N key for next image
+        elif key_pressed == 110:
+            image = get_image()
             filtered_image = empty
 
         # Adjust pen size
