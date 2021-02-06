@@ -92,36 +92,28 @@ class Reconstruct():
             # VGG 19 for Feature learning
             # 1.
             conv1_1 = self.new_conv_layer(images, [3,3,3,32], stride=1, name="conv1_1" )
-            #bn1_1 = tf.nn.relu(self.batchnorm(conv1_1, is_train, name='bn1_1')) 
             conv1_1 = tf.nn.elu(conv1_1)
             conv1_2 = self.new_conv_layer(conv1_1, [3,3,32,32], stride=1, name="conv1_2" )
-            #bn1_2 = tf.nn.relu(self.batchnorm(conv1_2, is_train, name='bn1_2')) 
             conv1_2 = tf.nn.elu(conv1_2)
             # Use stride convolution to replace max pooling (with padding to keep retain size 128->64)
             conv1_stride = self.new_conv_layer(conv1_2, [3,3,32,32], stride=2, name="conv1_stride")
             
             # 2.
             conv2_1 = self.new_conv_layer(conv1_stride, [3,3,32,64], stride=1, name="conv2_1" )
-            #bn2_1 = tf.nn.relu(self.batchnorm(conv2_1, is_train, name='bn2_1')) 
             conv2_1 = tf.nn.elu(conv2_1)
             conv2_2 = self.new_conv_layer(conv2_1, [3,3,64, 64], stride=1, name="conv2_2" )
-            #bn2_2 = tf.nn.relu(self.batchnorm(conv2_2, is_train, name='bn2_2')) 
             conv2_2 = tf.nn.elu(conv2_2)
             # Use stride convolution to replace max pooling (with padding to keep retain size 64->32)
             conv2_stride = self.new_conv_layer(conv2_2, [3,3,64,64], stride=2, name="conv2_stride")
             
             # 3.
             conv3_1 = self.new_conv_layer(conv2_stride, [3,3,64,128], stride=1, name="conv3_1" )
-            #bn3_1 = tf.nn.relu(self.batchnorm(conv3_1, is_train, name='bn3_1')) 
             conv3_1 = tf.nn.elu(conv3_1)
             conv3_2 = self.new_conv_layer(conv3_1, [3,3,128, 128], stride=1, name="conv3_2" )
-            #bn3_2 = tf.nn.relu(self.batchnorm(conv3_2, is_train, name='bn3_2')) 
             conv3_2 = tf.nn.elu(conv3_2)
             conv3_3 = self.new_conv_layer(conv3_2, [3,3,128,128], stride=1, name="conv3_3" )
-            #bn3_3 = tf.nn.relu(self.batchnorm(conv3_3, is_train, name='bn3_3')) 
             conv3_3 = tf.nn.elu(conv3_3)
-            conv3_4 = self.new_conv_layer(conv3_3, [3,3,128, 128], stride=1, name="conv3_4" )
-            #bn3_4 = tf.nn.relu(self.batchnorm(conv3_4, is_train, name='bn3_4'))    
+            conv3_4 = self.new_conv_layer(conv3_3, [3,3,128, 128], stride=1, name="conv3_4" )   
             conv3_4 = tf.nn.elu(conv3_4)
             # Use stride convolution to replace max pooling (with padding to keep retain size 32->16)
             conv3_stride = self.new_conv_layer(conv3_4, [3,3,128,128], stride=2, name="conv3_stride") # Final feature map (temporary)
@@ -178,16 +170,12 @@ class Reconstruct():
         with tf.compat.v1.variable_scope('DIS', reuse=reuse):
             conv1 = self.new_conv_layer(images, [4,4,3,64], stride=2, name="conv1" )
             bn1 = self.leaky_relu(self.batchnorm(conv1, is_train, name='bn1'))
-            #bn1 = tf.nn.elu(conv1) 
             conv2 = self.new_conv_layer(bn1, [4,4,64,128], stride=2, name="conv2")
             bn2 = self.leaky_relu(self.batchnorm(conv2, is_train, name='bn2'))
-            #bn2 = tf.nn.elu(conv2) 
             conv3 = self.new_conv_layer(bn2, [4,4,128,256], stride=2, name="conv3")
             bn3 = self.leaky_relu(self.batchnorm(conv3, is_train, name='bn3'))
-            #bn3 = tf.nn.elu(conv3) 
             conv4 = self.new_conv_layer(bn3, [4,4,256,512], stride=2, name="conv4")
             bn4 = self.leaky_relu(self.batchnorm(conv4, is_train, name='bn4'))
-            #bn4 = tf.nn.elu(conv4) 
 
 
             output = self.new_fc_layer( bn4, output_size=1, name='output')
