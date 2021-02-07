@@ -150,6 +150,8 @@ class Reconstruct():
             bn3 = self.leaky_relu(self.batchnorm(conv3, is_train, name='bn3'))
             conv4 = self.conv_2d_layer(bn3, [4,4,256,512], stride=2, name="conv4")
             bn4 = self.leaky_relu(self.batchnorm(conv4, is_train, name='bn4'))
+            conv5 = self.conv_2d_layer(bn3, [4,4,256,512], stride=2, name="conv4")
+            bn5 = self.leaky_relu(self.batchnorm(conv4, is_train, name='bn4'))
             output = self.fc_layer( bn4, output_size=1, name='output')
 
         return output[:,0]       
