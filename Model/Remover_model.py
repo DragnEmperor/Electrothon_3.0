@@ -140,16 +140,16 @@ class Reconstruct():
 
 #     def discriminator(self, images, is_train, reuse=None):
 #         with tf.compat.v1.variable_scope('DIS', reuse=reuse):
-#             conv1 = self.conv_2d_layer(images, [4,4,3,64], stride=2, name="conv1" )
+#             conv1 = self.conv_2d_layer(images, [4,4,3,32], stride=2, name="conv1" )
 #             bn1 = self.leaky_relu(self.batch_norm(conv1, is_train, name='bn1'))
-#             conv2 = self.conv_2d_layer(bn1, [4,4,64,128], stride=2, name="conv2")
+#             conv2 = self.conv_2d_layer(bn1, [4,4,32,64], stride=2, name="conv2")
 #             bn2 = self.leaky_relu(self.batch_norm(conv2, is_train, name='bn2'))
-#             conv3 = self.conv_2d_layer(bn2, [4,4,128,256], stride=2, name="conv3")
+#             conv3 = self.conv_2d_layer(bn2, [4,4,64,128], stride=2, name="conv3")
 #             bn3 = self.leaky_relu(self.batch_norm(conv3, is_train, name='bn3'))
-#             conv4 = self.conv_2d_layer(bn3, [4,4,256,512], stride=2, name="conv4")
+#             conv4 = self.conv_2d_layer(bn3, [4,4,128,256], stride=2, name="conv4")
 #             bn4 = self.leaky_relu(self.batch_norm(conv4, is_train, name='bn4'))
-#             conv5 = self.conv_2d_layer(bn3, [4,4,256,512], stride=2, name="conv4")
-#             bn5 = self.leaky_relu(self.batch_norm(conv4, is_train, name='bn4'))
+#             conv5 = self.conv_2d_layer(bn4, [4,4,256,512], stride=2, name="conv5")
+#             bn5 = self.leaky_relu(self.batch_norm(conv5, is_train, name='bn5'))
 #             output = self.fc_layer( bn4, output_size=1, name='output')
 
 #         return output[:,0]       
