@@ -8,7 +8,7 @@ class Reconstruct():
     def __init__(self):
         pass
     # Function for creating a convolutional layer along with weights:
-    def conv_2d(self,activation=tf.identity,input_image,filter_shape,padding='SAME',stride=1,name=None):
+    def conv_2d(self,input_image,filter_shape,activation=tf.identity,padding='SAME',stride=1,name=None):
         with tf.compat.v1.variable_scope(name):
             W = tf.compat.v1.get_variable("W", shape=filter_shape, initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
             b = tf.compat.v1.get_variable("b", shape=filter_shape[-1], initializer=tf.compat.v1.constant_initializer(0.))
@@ -16,7 +16,7 @@ class Reconstruct():
             bias = activation(tf.nn.bias_add(conv, b))
         return bias 
     # Function for creating a de-convolutional layer along with weights:
-    def conv_2d_transpose(self,output_shape, activation=tf.identity, input_image, filter_shape, padding='SAME', stride=1, name=None):
+    def conv_2d_transpose(self,input_image, filter_shape,output_shape, activation=tf.identity,padding='SAME', stride=1, name=None):
         with tf.compat.v1.variable_scope(name):
             W = tf.compat.v1.get_variable("W", shape=filter_shape, initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
             b = tf.compat.v1.get_variable("b", shape=filter_shape[-2], initializer=tf.compat.v1.constant_initializer(0.))
@@ -83,7 +83,7 @@ class Reconstruct():
     
     # THE FOLLOWING CODE IS USED ONLY DURING THE TRAINING PHASE
     
-#     def resize_conv_layer(self, resize_scale=2, activation=tf.identity, input_image, filter_shape, padding='SAME', stride=1, name=None):
+#     def resize_conv_layer(self,input_image, filter_shape, resize_scale=2,  activation=tf.identity,padinput_image, filter_shape, ding='SAME', stride=1, ame=None):
 #         width = input_image.get_shape().as_list()[1]
 #         height = input_image.get_shape().as_list()[2]
 #         input_image = tf.image.resize(input_image, [width*resize_scale, height*resize_scale], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
