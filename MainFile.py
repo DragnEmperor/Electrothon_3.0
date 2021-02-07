@@ -5,31 +5,41 @@ import tensorflow as tf
 from Model.Remover_model import Reconstruct
 from glob import glob as files
 
-_x, _y = -1, -1
-
 # Size of the Image
 size = 800
 
 # Other Params
 sizeBlank, img_no, isDrawn, stroke_size = 20, 0, False, 3
-font = FONT_ITALIC
+font = FONT_HERSHEY_SIMPLEX
+_x, _y = -1, -1
+name = "Object Remover"
+WINDOW_SIZE = (1280, 720)
+
+# Prerained model path
+pretrained_model = './Model/pre_model'
 
 # Paths for image files strored in folder testimages
 path_images = []
 path_images.extend(sorted(files(os.path.join('Data/', '*.jpg'))))
 
 # Extract Image from given path and pre-process it
-def get_image(this = False):
+def get_image(num = 0):
     global path_images, img_no
-    if this:
+    if num == 1:
         img_no -= 1
+    if num == -1:
+        img_no -= 2
+        if img_no < 0:
+            img_no = len(path_images) - 1
+    else:
+        if img_no >= len(path_images):
+            img_no = 0
+
+    # print(f"Image Number {img_no}")
     image = imread(path_images[img_no])
     image = resize(image, (size, size))
     image = image / 255.0
     img_no += 1
-    if img_no >= len(path_images):
-        img_no = 0
-
     return image
 
 # Mask Generation
@@ -59,82 +69,97 @@ def call_mouse(event, x, y, flag, param):
 
 # Main Code Starts Here
 if __name__ == "__main__":
-    print("Window Setup")
+
+    # Window Setup
+    namedWindow(name, WINDOW_NORMAL)
+    resizeWindow(name, WINDOW_SIZE[0], WINDOW_SIZE[1])
+    setMouseCallback(name, call_mouse)
+    
+    # Tensorflow and Model Init
+    sess = tf.compat.v1.InteractiveSession()
+    isTr = tf.compat.v1.placeholder(tf.bool)
+    images_placeholder = tf.compat.v1.placeholder(tf.float32, shape=[1, size, size, 3], name="images")
+
+    # Initiliasing our Constructor Class
+    model = Reconstruct()
+
+    # Restoring save points for faster performnace
+    recon_gen = model.generator(images_placeholder, isTr)
+    model_saver = tf.compat.v1.train.Saver(max_to_keep=100)
+    model_saver.restore(sess, pretrained_model)
+
+    # Trackbar for this Project
+    createTrackbar('Pen Size', name, 8, 25, lambda x: x/2)
+
+    # Image Placeholders Setup
     image = get_image()
     text_box = np.zeros((sizeBlank, 2*size + sizeBlank, 3)) + 1.
     empty = np.zeros((size, size, 3))
     blank = np.zeros((size, sizeBlank, 3)) + 1
-
-    namedWindow("Object Removal Window", WINDOW_NORMAL)
-    setMouseCallback('Object Removal Window', call_mouse)
     
-    # Prerained model path
-    pretrained_model = './Model/pre_model'
-
-    # Tensorflow and Model Init
-    sess = tf.compat.v1.InteractiveSession()
-    isTraining = tf.compat.v1.placeholder(tf.bool)
-    images_placeholder = tf.compat.v1.placeholder(tf.float32, shape=[1, size, size, 3], name="images")
-
-    # Initiliasing our remover
-    model = Reconstruct()
-
-    recon_gen = model.generator(images_placeholder, isTraining)
-    saver = tf.compat.v1.train.Saver(max_to_keep=100)
-    saver.restore(sess, pretrained_model)
-
-    createTrackbar('Pen Size', 'Object Removal Window', 1, 10, lambda x: x)
-    # Widget for pensize
-
-    filtered_image = empty
-    # Filtered image which is initially empty
-
+    # Set generated image to Empty
+    gen_img = empty
+    
+    # Main Loop
     while(True):
         # Windows and text
-        sub_window = np.hstack((image, blank, filtered_image[:, :, [2, 1, 0]]))
+        sub_window = np.hstack((image, blank, gen_img[:, :, [2, 1, 0]]))
         window = np.vstack((sub_window, text_box))
-        imshow('Object Removal Window', window)
-        putText(text_box, 'Image', (110, 15), font, 0.4, (0, 0, 0), 1)
-        putText(text_box, 'Reconstructed Image', (130 + size, 15), font, 0.4, (0, 0, 0), 1)
+        imshow(name, window)
+        putText(text_box, 'Image', (350, 15), font, 0.7, (0, 255, 0), 2, LINE_AA)
+        putText(text_box, 'Reconstructed Image', (300 + size, 15), font, 0.7, (255, 0, 0), 2, LINE_AA)
 
         # Key Events
-        key_pressed = waitKey(1) & 0xFF
-
+        key = waitKey(1)
+        # if key != -1:
+        #     print(key)
+        
         # ESC Key
-        if key_pressed == 27:
+        if key == 27:
             break
 
-        # F Key for filter
-        elif key_pressed == 102:
+        # Enter Key or F key for Results
+        elif key == 13 or key == 102:
             input_masked = masking(image)
             input_masked = input_masked[:, :, [2, 1, 0]]
             shape = np.array(input_masked).shape
-            input_tensor = np.array(input_masked).reshape(
-                1, shape[0], shape[1], shape[2])
+            input_tensor = np.array(input_masked).reshape(1, shape[0], shape[1], shape[2])
             output_tensor = sess.run(
                 recon_gen,
                 feed_dict={
                     images_placeholder: input_tensor,
-                    isTraining: False
+                    isTr: False
                 }
             )
-            filtered_image = np.array(output_tensor)[0, :, :, :].astype(float)
+            gen_img = np.array(output_tensor)[0, :, :, :].astype(float)
             # imwrite(os.path.join('inputs', path_images[img_no][21 : 35]), ((image) * 255))
 
-        elif key_pressed == 115:
-            imwrite('Result/res.jpg', ((filtered_image[:,:,[2, 1, 0]]) * 255) )
+        # S Key for saving the Results
+        elif key == 115:
+            res_path = f'Result/res_{img_no}.jpg'
+            imwrite(res_path, ((gen_img[:,:,[2, 1, 0]]) * 255))
+            print(f"Result saved at {res_path}")
 
-        # R key to reset
-        elif key_pressed == 114:
-            image = get_image(this=True)
-            filtered_image = empty
+        # R key to reset the current progress
+        elif key == 114:
+            image = get_image(1)
+            gen_img = empty
 
-        # N key for next image
-        elif key_pressed == 110:
+        # Right Arrow key for next image
+        elif key == 83:
             image = get_image()
-            filtered_image = empty
+            gen_img = empty
+
+        # Left Arrow key for previous image
+        elif key == 81:
+            image = get_image(-1)
+            gen_img = empty
+        
+        # Support for closing using Alt+F4 and Cross Button on Window
+        if getWindowProperty(name, WND_PROP_VISIBLE) < 1:        
+            break
 
         # Adjust pen size
-        stroke_size = getTrackbarPos('Pen Size', 'Object Removal Window')
+        stroke_size = getTrackbarPos('Pen Size', name)
 
     destroyAllWindows()
