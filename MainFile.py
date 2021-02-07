@@ -3,7 +3,7 @@ import os
 import numpy as np
 from cv2 import *
 import tensorflow as tf
-from Model.Remover_model import Reconstruct
+from Generator import *
 from glob import glob as files
 
 # Size of the Image
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     images_placeholder = tf.compat.v1.placeholder(tf.float32, shape=[1, size, size, 3], name="images")
 
     # Initiliasing our Constructor Class
-    model = Reconstruct()
+    model = Generate()
 
     # Restoring save points for faster performnace
     recon_gen = model.generator(images_placeholder, isTr)
