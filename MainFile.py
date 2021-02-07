@@ -110,7 +110,7 @@ if __name__ == "__main__":
         putText(text_box, 'Reconstructed Image', (300 + size, 15), font, 0.7, (255, 0, 0), 2, LINE_AA)
 
         # Key Events
-        key = waitKey(1)
+        key = waitKeyEx(1)
         # if key != -1:
         #     print(key)
         
@@ -145,13 +145,13 @@ if __name__ == "__main__":
             image = get_image(1)
             gen_img = empty
 
-        # Right Arrow key for next image
-        elif key == 83:
+        # D key for next image
+        elif key == 100:
             image = get_image()
             gen_img = empty
 
-        # Left Arrow key for previous image
-        elif key == 81:
+        # A key for previous image
+        elif key == 97:
             image = get_image(-1)
             gen_img = empty
         
