@@ -7,7 +7,7 @@ tf.compat.v1.disable_v2_behavior()
 class Reconstruct():
     def __init__(self):
         pass
-
+    # Function for creating a convolutional layer along with weights:
     def conv_2d(self,activation=tf.identity,input_image,filter_shape,padding='SAME',stride=1,name=None):
         with tf.compat.v1.variable_scope(name):
             W = tf.compat.v1.get_variable("W", shape=filter_shape, initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
@@ -15,7 +15,7 @@ class Reconstruct():
             conv = tf.nn.conv2d( input=input_image, filters=W, strides=[1,stride,stride,1], padding=padding)
             bias = activation(tf.nn.bias_add(conv, b))
         return bias 
-
+    # Function for creating a de-convolutional layer along with weights:
     def conv_2d_transpose(self,output_shape, activation=tf.identity, input_image, filter_shape, padding='SAME', stride=1, name=None):
         with tf.compat.v1.variable_scope(name):
             W = tf.compat.v1.get_variable("W", shape=filter_shape, initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
@@ -23,23 +23,24 @@ class Reconstruct():
             deconv = tf.nn.conv2d_transpose( input=input_image, filters=W, output_shape,strides=[1,stride,stride,1], padding=padding)
             bias = activation(tf.nn.bias_add(deconv, b))
         return bias
-
+    # Activation function:
     def leaky_relu(self,new_input):
         return tf.nn.leaky_relu(new_input,alpha=0.1,)
-    
+    # Generator Network:
     def generator( self, images, is_train ):  
         with tf.compat.v1.variable_scope('GEN'):
             # Encoder part(convolution, fraction-strided convolution, ELU):
+            # We have used as it has less error rates as compared to leakyReLU for larger dataset
             conv1_1 = self.conv_2d(images, [3,3,3,32], stride=1, name="conv1_1" )
             conv1_1 = tf.nn.elu(conv1_1)
             conv1_2 = self.conv_2d(conv1_1, [3,3,32,32], stride=1, name="conv1_2" )
             conv1_2 = tf.nn.elu(conv1_2)
-            conv1_stride = self.conv_2d(conv1_2, [3,3,32,32], stride=2, name="conv1_stride")
+            conv1_stride = self.conv_2d(conv1_2, [3,3,32,32], stride=2, name="conv1_stride")    # replaced max pooling by strided convolution for performance enhancement.
             conv2_1 = self.conv_2d(conv1_stride, [3,3,32,64], stride=1, name="conv2_1" )
             conv2_1 = tf.nn.elu(conv2_1)
             conv2_2 = self.conv_2d(conv2_1, [3,3,64, 64], stride=1, name="conv2_2" )
             conv2_2 = tf.nn.elu(conv2_2)
-            conv2_stride = self.conv_2d(conv2_2, [3,3,64,64], stride=2, name="conv2_stride")
+            conv2_stride = self.conv_2d(conv2_2, [3,3,64,64], stride=2, name="conv2_stride")    # replaced max pooling by strided convolution for performance enhancement.
             conv3_1 = self.conv_2d(conv2_stride, [3,3,64,128], stride=1, name="conv3_1" )
             conv3_1 = tf.nn.elu(conv3_1)
             conv3_2 = self.conv_2d(conv3_1, [3,3,128, 128], stride=1, name="conv3_2" )
@@ -48,12 +49,12 @@ class Reconstruct():
             conv3_3 = tf.nn.elu(conv3_3)
             conv3_4 = self.conv_2d(conv3_3, [3,3,128, 128], stride=1, name="conv3_4" )   
             conv3_4 = tf.nn.elu(conv3_4)
-            conv3_stride = self.conv_2d(conv3_4, [3,3,128,128], stride=2, name="conv3_stride")
-            conv4_stride = self.conv_2d(conv3_stride, [3,3,128,128], stride=2, name="conv4_stride")
+            conv3_stride = self.conv_2d(conv3_4, [3,3,128,128], stride=2, name="conv3_stride")   # replaced max pooling by strided convolution for performance enhancement.
+            conv4_stride = self.conv_2d(conv3_stride, [3,3,128,128], stride=2, name="conv4_stride")   # replaced max pooling by strided convolution for performance enhancement.
             conv4_stride = tf.nn.elu(conv4_stride)
-            conv5_stride = self.conv_2d(conv4_stride, [3,3,128,128], stride=2, name="conv5_stride")
+            conv5_stride = self.conv_2d(conv4_stride, [3,3,128,128], stride=2, name="conv5_stride")    # replaced max pooling by strided convolution for performance enhancement.
             conv5_stride = tf.nn.elu(conv5_stride)
-            conv6_stride = self.conv_2d(conv5_stride, [3,3,128,128], stride=2, name="conv6_stride") # 4 -> 1
+            conv6_stride = self.conv_2d(conv5_stride, [3,3,128,128], stride=2, name="conv6_stride") 
             conv6_stride = tf.nn.elu(conv6_stride)
  
             # Decoder part
