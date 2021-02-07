@@ -8,7 +8,7 @@ class Reconstruct():
     def __init__(self):
         pass
 
-    def conv_2d_layer(self,activation=tf.identity,input_image,filter_shape,padding='SAME',stride=1,name=None):
+    def conv_2d(self,activation=tf.identity,input_image,filter_shape,padding='SAME',stride=1,name=None):
         with tf.compat.v1.variable_scope(name):
             W = tf.compat.v1.get_variable("W", shape=filter_shape, initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
             b = tf.compat.v1.get_variable("b", shape=filter_shape[-1], initializer=tf.compat.v1.constant_initializer(0.))
@@ -23,13 +23,6 @@ class Reconstruct():
             deconv = tf.nn.conv2d_transpose( input=input_image, filters=W, output_shape,strides=[1,stride,stride,1], padding=padding)
             bias = activation(tf.nn.bias_add(deconv, b))
         return bias
-    
-    def resize_conv_layer(self, resize_scale=2, activation=tf.identity, input_image, filter_shape, padding='SAME', stride=1, name=None):
-        width = input_image.get_shape().as_list()[1]
-        height = input_image.get_shape().as_list()[2]
-        input_image = tf.image.resize(input_image, [width*resize_scale, height*resize_scale], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-        bias = self.conv_2d_layer(input_image, filter_shape, stride=1, name=name )
-        return bias
 
     def leaky_relu(self,new_input):
         return tf.nn.leaky_relu(new_input,alpha=0.1,)
@@ -37,30 +30,30 @@ class Reconstruct():
     def generator( self, images, is_train ):  
         with tf.compat.v1.variable_scope('GEN'):
             # Encoder part(convolution, fraction-strided convolution, ELU):
-            conv1_1 = self.conv_2d_layer(images, [3,3,3,32], stride=1, name="conv1_1" )
+            conv1_1 = self.conv_2d(images, [3,3,3,32], stride=1, name="conv1_1" )
             conv1_1 = tf.nn.elu(conv1_1)
-            conv1_2 = self.conv_2d_layer(conv1_1, [3,3,32,32], stride=1, name="conv1_2" )
+            conv1_2 = self.conv_2d(conv1_1, [3,3,32,32], stride=1, name="conv1_2" )
             conv1_2 = tf.nn.elu(conv1_2)
-            conv1_stride = self.conv_2d_layer(conv1_2, [3,3,32,32], stride=2, name="conv1_stride")
-            conv2_1 = self.conv_2d_layer(conv1_stride, [3,3,32,64], stride=1, name="conv2_1" )
+            conv1_stride = self.conv_2d(conv1_2, [3,3,32,32], stride=2, name="conv1_stride")
+            conv2_1 = self.conv_2d(conv1_stride, [3,3,32,64], stride=1, name="conv2_1" )
             conv2_1 = tf.nn.elu(conv2_1)
-            conv2_2 = self.conv_2d_layer(conv2_1, [3,3,64, 64], stride=1, name="conv2_2" )
+            conv2_2 = self.conv_2d(conv2_1, [3,3,64, 64], stride=1, name="conv2_2" )
             conv2_2 = tf.nn.elu(conv2_2)
-            conv2_stride = self.conv_2d_layer(conv2_2, [3,3,64,64], stride=2, name="conv2_stride")
-            conv3_1 = self.conv_2d_layer(conv2_stride, [3,3,64,128], stride=1, name="conv3_1" )
+            conv2_stride = self.conv_2d(conv2_2, [3,3,64,64], stride=2, name="conv2_stride")
+            conv3_1 = self.conv_2d(conv2_stride, [3,3,64,128], stride=1, name="conv3_1" )
             conv3_1 = tf.nn.elu(conv3_1)
-            conv3_2 = self.conv_2d_layer(conv3_1, [3,3,128, 128], stride=1, name="conv3_2" )
+            conv3_2 = self.conv_2d(conv3_1, [3,3,128, 128], stride=1, name="conv3_2" )
             conv3_2 = tf.nn.elu(conv3_2)
-            conv3_3 = self.conv_2d_layer(conv3_2, [3,3,128,128], stride=1, name="conv3_3" )
+            conv3_3 = self.conv_2d(conv3_2, [3,3,128,128], stride=1, name="conv3_3" )
             conv3_3 = tf.nn.elu(conv3_3)
-            conv3_4 = self.conv_2d_layer(conv3_3, [3,3,128, 128], stride=1, name="conv3_4" )   
+            conv3_4 = self.conv_2d(conv3_3, [3,3,128, 128], stride=1, name="conv3_4" )   
             conv3_4 = tf.nn.elu(conv3_4)
-            conv3_stride = self.conv_2d_layer(conv3_4, [3,3,128,128], stride=2, name="conv3_stride")
-            conv4_stride = self.conv_2d_layer(conv3_stride, [3,3,128,128], stride=2, name="conv4_stride")
+            conv3_stride = self.conv_2d(conv3_4, [3,3,128,128], stride=2, name="conv3_stride")
+            conv4_stride = self.conv_2d(conv3_stride, [3,3,128,128], stride=2, name="conv4_stride")
             conv4_stride = tf.nn.elu(conv4_stride)
-            conv5_stride = self.conv_2d_layer(conv4_stride, [3,3,128,128], stride=2, name="conv5_stride")
+            conv5_stride = self.conv_2d(conv4_stride, [3,3,128,128], stride=2, name="conv5_stride")
             conv5_stride = tf.nn.elu(conv5_stride)
-            conv6_stride = self.conv_2d_layer(conv5_stride, [3,3,128,128], stride=2, name="conv6_stride") # 4 -> 1
+            conv6_stride = self.conv_2d(conv5_stride, [3,3,128,128], stride=2, name="conv6_stride") # 4 -> 1
             conv6_stride = tf.nn.elu(conv6_stride)
  
             # Decoder part
@@ -84,11 +77,17 @@ class Reconstruct():
             debn1_fs = tf.nn.elu(deconv1_fs)  
             skip1 = tf.concat([debn1_fs, conv1_stride], 3)
             channels1 = skip1.get_shape().as_list()[3]
-           
             recon = self.conv_2d_transpose( skip1, [3,3,3,channels1],  images.get_shape().as_list(), stride=2, name="recon") 
         return recon
     
     # THE FOLLOWING CODE IS USED ONLY DURING THE TRAINING PHASE
+    
+#     def resize_conv_layer(self, resize_scale=2, activation=tf.identity, input_image, filter_shape, padding='SAME', stride=1, name=None):
+#         width = input_image.get_shape().as_list()[1]
+#         height = input_image.get_shape().as_list()[2]
+#         input_image = tf.image.resize(input_image, [width*resize_scale, height*resize_scale], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+#         bias = self.conv_2d(input_image, filter_shape, stride=1, name=name )
+#         return bias
     
 #     def fc_layer( self,input_image, output_size, name ):
 #         shape = input_image.get_shape().as_list()
@@ -139,15 +138,15 @@ class Reconstruct():
 
 #     def discriminator(self,is_train,images,reuse=None):
 #         with tf.compat.v1.variable_scope('DIS', reuse=reuse):
-#             conv1 = self.conv_2d_layer(images, [4,4,3,32], stride=2, name="conv1" )
+#             conv1 = self.conv_2d(images, [4,4,3,32], stride=2, name="conv1" )
 #             bn1 = self.leaky_relu(self.batch_norm(conv1, is_train, name='bn1'))
-#             conv2 = self.conv_2d_layer(bn1, [4,4,32,64], stride=2, name="conv2")
+#             conv2 = self.conv_2d(bn1, [4,4,32,64], stride=2, name="conv2")
 #             bn2 = self.leaky_relu(self.batch_norm(conv2, is_train, name='bn2'))
-#             conv3 = self.conv_2d_layer(bn2, [4,4,64,128], stride=2, name="conv3")
+#             conv3 = self.conv_2d(bn2, [4,4,64,128], stride=2, name="conv3")
 #             bn3 = self.leaky_relu(self.batch_norm(conv3, is_train, name='bn3'))
-#             conv4 = self.conv_2d_layer(bn3, [4,4,128,256], stride=2, name="conv4")
+#             conv4 = self.conv_2d(bn3, [4,4,128,256], stride=2, name="conv4")
 #             bn4 = self.leaky_relu(self.batch_norm(conv4, is_train, name='bn4'))
-#             conv5 = self.conv_2d_layer(bn4, [4,4,256,512], stride=2, name="conv5")
+#             conv5 = self.conv_2d(bn4, [4,4,256,512], stride=2, name="conv5")
 #             bn5 = self.leaky_relu(self.batch_norm(conv5, is_train, name='bn5'))
 #             output = self.fc_layer( bn4, output_size=1, name='output')
 
