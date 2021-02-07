@@ -1,3 +1,4 @@
+# TEAM ENIGMA
 import os
 import numpy as np
 from cv2 import *
@@ -163,3 +164,4 @@ if __name__ == "__main__":
         stroke_size = getTrackbarPos('Pen Size', name)
 
     destroyAllWindows()
+    # TEAM ENIGMA
