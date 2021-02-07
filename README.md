@@ -28,20 +28,24 @@ Code Example
 
 ### How to Use:
 Step 1: Install all the required dependencies.
-<br>
+<br><br>
 Step 2: Open the **Main.py** file on your code editor and run it.
-<br>
+<br><br>
 Step 3: Use the following Hot Keys to navigate through the UI:
 <br>
  **[A] Key**          : Moves to next Image.
- **[D] Key**          : Moves to previous Image.
- **[Esc] Key**        : Close the Windowed Application.
  <br>
+ **[D] Key**          : Moves to previous Image.
+ <br>
+ **[Esc] Key**        : Close the Windowed Application.
+ <br><br>
 Step 4: Use the bottom bar to increase or decrease the pen size and select the part of image to remove by dragging the mouse over them(just like painting).
-<br>
-Step 5: Then use the following hot keys as per the need: 
+<br><br>
+Step 5: Then use the following hot keys as per the requirement: 
 <br>
  **[F] or[Enter] Key**: Applies the filter, removes the selected the elements and displays the resulting image on right panel.
+ <br>
  **[R] Key**          : Resets the masked Image to Original(undo all the masking).
+ <br>
  **[S] Key**          : Save the resulting image.
 <br>
