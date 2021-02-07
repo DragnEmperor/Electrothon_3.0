@@ -15,6 +15,7 @@ font = FONT_HERSHEY_SIMPLEX
 _x, _y = -1, -1
 name = "Object Remover"
 WINDOW_SIZE = (1280, 720)
+RES_STORAGE = 'Result'
 
 # Prerained model path
 pretrained_model = './Model/pre_model'
@@ -137,7 +138,7 @@ if __name__ == "__main__":
 
         # S Key for saving the Results
         elif key == 115:
-            res_path = f'Result/res_{img_no}.jpg'
+            res_path = RES_STORAGE + f'/res_{img_no}.jpg'
             imwrite(res_path, ((gen_img[:,:,[2, 1, 0]]) * 255))
             print(f"Result saved at {res_path}")
 
