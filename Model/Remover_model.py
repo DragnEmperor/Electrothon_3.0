@@ -31,33 +31,8 @@ class Reconstruct():
         bias = self.conv_2d_layer(input_image, filter_shape, stride=1, name=name )
         return bias
 
-    def fc_layer( self,input_image, output_size, name ):
-        shape = input_image.get_shape().as_list()
-        dim = np.prod( shape[1:] )
-        x = tf.reshape( input_image, [-1, dim])
-        input_size = dim
-        with tf.compat.v1.variable_scope(name):
-            w = tf.compat.v1.get_variable("W", shape=[input_size, output_size], initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
-            b = tf.compat.v1.get_variable("b", shape=[output_size], initializer=tf.compat.v1.constant_initializer(0.))
-            fc = tf.nn.bias_add( tf.matmul(x, w), b)
-        return fc
-
     def leaky_relu(self,new_input):
         return tf.nn.leaky_relu(new_input,alpha=0.1,)
-
-    def channel_wise_fc_layer(self, input, name): # input_image: (7x7x512)
-        _, width, height, n_feat_map = input.get_shape().as_list()
-        input_reshape = tf.reshape( input, [-1, width*height, n_feat_map] )
-        input_transpose = tf.transpose( a=input_reshape, perm=[2,0,1] )
-        with tf.compat.v1.variable_scope(name):
-            # (512,49,49)
-            W = tf.compat.v1.get_variable("W", shape=[n_feat_map,width*height, width*height], initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
-            output = tf.batch_matmul(input_transpose, W)
-
-        output_transpose = tf.transpose(a=output, perm=[1,2,0])
-        output_reshape = tf.reshape( output_transpose, [-1, height, width, n_feat_map] )
-
-        return output_reshape
     
     def generator( self, images, is_train ):  
         with tf.compat.v1.variable_scope('GEN'):
@@ -113,7 +88,32 @@ class Reconstruct():
             recon = self.conv_2d_transpose( skip1, [3,3,3,channels1],  images.get_shape().as_list(), stride=2, name="recon") 
         return recon
     
-    # THE FOLLOWING CODE IS USED ONLY DURING THE TRAINING PHASE 
+    # THE FOLLOWING CODE IS USED ONLY DURING THE TRAINING PHASE
+    
+#     def fc_layer( self,input_image, output_size, name ):
+#         shape = input_image.get_shape().as_list()
+#         dim = np.prod( shape[1:] )
+#         x = tf.reshape( input_image, [-1, dim])
+#         input_size = dim
+#         with tf.compat.v1.variable_scope(name):
+#             w = tf.compat.v1.get_variable("W", shape=[input_size, output_size], initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
+#             b = tf.compat.v1.get_variable("b", shape=[output_size], initializer=tf.compat.v1.constant_initializer(0.))
+#             fc = tf.nn.bias_add( tf.matmul(x, w), b)
+#         return fc
+
+#     def channel_wise_fc_layer(self, input, name): # input_image: (7x7x512)
+#         _, width, height, n_feat_map = input.get_shape().as_list()
+#         input_reshape = tf.reshape( input, [-1, width*height, n_feat_map] )
+#         input_transpose = tf.transpose( a=input_reshape, perm=[2,0,1] )
+#         with tf.compat.v1.variable_scope(name):
+#             # (512,49,49)
+#             W = tf.compat.v1.get_variable("W", shape=[n_feat_map,width*height, width*height], initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
+#             output = tf.batch_matmul(input_transpose, W)
+
+#         output_transpose = tf.transpose(a=output, perm=[1,2,0])
+#         output_reshape = tf.reshape( output_transpose, [-1, height, width, n_feat_map] )
+
+#         return output_reshape
     
 #     def batch_norm(self,input_image, is_train, epsilon=1e-8, name=None):
 #         input_image = tf.clip_by_value( input_image, -100., 100.)
