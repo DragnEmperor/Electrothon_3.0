@@ -1,4 +1,4 @@
-# Introduction
+# Introduction - Project Efface
 **Image Inpainting** is a classical problem in computer vision and graphics.<br><br>
 The objective is to fill semantic and reasonable contents in the corruptions and voids and generate an image. Humans can fill the missing regions using empirical knowledge of the diverse
 object structures present in real world.<br><br>
