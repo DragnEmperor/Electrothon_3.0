@@ -29,7 +29,7 @@ This project tries to achieve object removal from images and get the base image 
 - **Code Example**
 
     <img src="Data/Readme/img2.png">
-<br><br>
+<br>
 
 ### How to Use:
 - Step 1: Install all the required dependencies. Use the following command to install the dependencies.
