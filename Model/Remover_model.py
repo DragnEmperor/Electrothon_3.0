@@ -8,46 +8,44 @@ class Reconstruct():
     def __init__(self):
         pass
 
-    def conv_2d_layer(self, bottom, filter_shape, activation=tf.identity, padding='SAME', stride=1, name=None ):
+    def conv_2d_layer(self,activation=tf.identity,input_image,filter_shape,padding='SAME',stride=1,name=None):
         with tf.compat.v1.variable_scope(name):
-            w = tf.compat.v1.get_variable("W", shape=filter_shape, initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
+            W = tf.compat.v1.get_variable("W", shape=filter_shape, initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
             b = tf.compat.v1.get_variable("b", shape=filter_shape[-1], initializer=tf.compat.v1.constant_initializer(0.))
-            conv = tf.nn.conv2d( input=bottom, filters=w, strides=[1,stride,stride,1], padding=padding)
+            conv = tf.nn.conv2d( input=input_image, filters=W, strides=[1,stride,stride,1], padding=padding)
             bias = activation(tf.nn.bias_add(conv, b))
-
         return bias 
 
-    def conv_2d_transpose(self, bottom, filter_shape, output_shape, activation=tf.identity, padding='SAME', stride=1, name=None):
+    def conv_2d_transpose(self,output_shape, activation=tf.identity, input_image, filter_shape, padding='SAME', stride=1, name=None):
         with tf.compat.v1.variable_scope(name):
             W = tf.compat.v1.get_variable("W", shape=filter_shape, initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
             b = tf.compat.v1.get_variable("b", shape=filter_shape[-2], initializer=tf.compat.v1.constant_initializer(0.))
-            deconv = tf.nn.conv2d_transpose( bottom, W, output_shape, [1,stride,stride,1], padding=padding)
+            deconv = tf.nn.conv2d_transpose( input=input_image, filters=W, output_shape,strides=[1,stride,stride,1], padding=padding)
             bias = activation(tf.nn.bias_add(deconv, b))
-
         return bias
-    def resize_conv_layer(self, bottom, filter_shape, resize_scale=2, activation=tf.identity, padding='SAME', stride=1, name=None):
-        width = bottom.get_shape().as_list()[1]
-        height = bottom.get_shape().as_list()[2]
-        bottom = tf.image.resize(bottom, [width*resize_scale, height*resize_scale], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-        bias = self.conv_2d_layer(bottom, filter_shape, stride=1, name=name )
+    
+    def resize_conv_layer(self, resize_scale=2, activation=tf.identity, input_image, filter_shape, padding='SAME', stride=1, name=None):
+        width = input_image.get_shape().as_list()[1]
+        height = input_image.get_shape().as_list()[2]
+        input_image = tf.image.resize(input_image, [width*resize_scale, height*resize_scale], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        bias = self.conv_2d_layer(input_image, filter_shape, stride=1, name=name )
         return bias
 
-    def fc_layer( self, bottom, output_size, name ):
-        shape = bottom.get_shape().as_list()
+    def fc_layer( self,input_image, output_size, name ):
+        shape = input_image.get_shape().as_list()
         dim = np.prod( shape[1:] )
-        x = tf.reshape( bottom, [-1, dim])
+        x = tf.reshape( input_image, [-1, dim])
         input_size = dim
         with tf.compat.v1.variable_scope(name):
             w = tf.compat.v1.get_variable("W", shape=[input_size, output_size], initializer=tf.compat.v1.random_normal_initializer(0., 0.005))
             b = tf.compat.v1.get_variable("b", shape=[output_size], initializer=tf.compat.v1.constant_initializer(0.))
             fc = tf.nn.bias_add( tf.matmul(x, w), b)
-
         return fc
 
     def leaky_relu(self,new_input):
         return tf.nn.leaky_relu(new_input,alpha=0.1,)
 
-    def channel_wise_fc_layer(self, input, name): # bottom: (7x7x512)
+    def channel_wise_fc_layer(self, input, name): # input_image: (7x7x512)
         _, width, height, n_feat_map = input.get_shape().as_list()
         input_reshape = tf.reshape( input, [-1, width*height, n_feat_map] )
         input_transpose = tf.transpose( a=input_reshape, perm=[2,0,1] )
@@ -117,15 +115,15 @@ class Reconstruct():
     
     # THE FOLLOWING CODE IS USED ONLY DURING THE TRAINING PHASE 
     
-#     def batch_norm(self, bottom, is_train, epsilon=1e-8, name=None):
-#         bottom = tf.clip_by_value( bottom, -100., 100.)
-#         depth = bottom.get_shape().as_list()[-1]
+#     def batch_norm(self,input_image, is_train, epsilon=1e-8, name=None):
+#         input_image = tf.clip_by_value( input_image, -100., 100.)
+#         depth = input_image.get_shape().as_list()[-1]
 
 #         with tf.compat.v1.variable_scope(name):
 #             gamma = tf.compat.v1.get_variable("gamma", [depth], initializer=tf.compat.v1.constant_initializer(1.))
 #             beta  = tf.compat.v1.get_variable("beta" , [depth], initializer=tf.compat.v1.constant_initializer(0.))
 
-#             batch_mean, batch_var = tf.nn.moments(x=bottom, axes=[0,1,2], name='moments')
+#             batch_mean, batch_var = tf.nn.moments(x=input_image, axes=[0,1,2], name='moments')
 #             ema = tf.train.ExponentialMovingAverage(decay=0.5)
 
 #             def update():
@@ -135,11 +133,11 @@ class Reconstruct():
 #             ema_apply_op = ema.apply([batch_mean, batch_var])
 #             ema_mean, ema_var = ema.average(batch_mean), ema.average(batch_var)
 #             mean, var = tf.cond(pred=is_train, true_fn=update, false_fn=lambda: (ema_mean, ema_var) )
-#             normed = tf.nn.batch_norm_with_global_normalization(bottom, mean, var, beta, gamma, epsilon, False)
+#             normed = tf.nn.batch_norm_with_global_normalization(input_image, mean, var, beta, gamma, epsilon, False)
         
 #         return normed
 
-#     def discriminator(self, images, is_train, reuse=None):
+#     def discriminator(self,is_train,images,reuse=None):
 #         with tf.compat.v1.variable_scope('DIS', reuse=reuse):
 #             conv1 = self.conv_2d_layer(images, [4,4,3,32], stride=2, name="conv1" )
 #             bn1 = self.leaky_relu(self.batch_norm(conv1, is_train, name='bn1'))
